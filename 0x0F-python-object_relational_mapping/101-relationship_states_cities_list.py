@@ -1,31 +1,33 @@
 #!/usr/bin/python3
-'''script for task 16'''
+"""
+use table relationship to access and print city and state
+parameters given to script: username, password, database
+"""
 
+from sys import argv
+from relationship_state import Base, State
+from relationship_city import City
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from relationship_state import State, Base
-from relationship_city import City
-import sys
 
-if __name__ == '__main__':
-    username = sys.argv[1]
-    password = sys.argv[2]
-    db_name = sys.argv[3]
-    host = 'localhost'
-    port = '3306'
 
-    engine = create_engine('mysql+mysqldb://{}:{}@{}:{}/{}'.format(
-                            username, password, host, port, db_name
-                            ), pool_pre_ping=True)
+if __name__ == "__main__":
+
+    # make engine for database
+    user = argv[1]
+    passwd = argv[2]
+    db = argv[3]
+    engine = create_engine('mysql+mysqldb://{}:{}@localhost/{}'.
+                           format(user, passwd, db), pool_pre_ping=True)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
-    loc_session = Session()
-    states = loc_session.query(State).order_by(State.id.asc()).all()
+    session = Session()
 
-    for state in states:
-        print('{}: {}'.format(state.id, state.name))
+    # use table relationship to access and print city and state
+    rows = session.query(State).order_by(State.id).all()
+    for state in rows:
+        print("{}: {}".format(state.id, state.name))
         for city in state.cities:
-            print('\t{}: {}'.format(city.id, city.name))
+            print("    {}: {}".format(city.id, city.name))
 
-    loc_session.close()
-    engine.dispose()
+    session.close()
